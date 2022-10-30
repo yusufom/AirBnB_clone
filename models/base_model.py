@@ -1,56 +1,60 @@
 #!/usr/bin/python3
-"""
-    This module defines the BaseModel class and is a
-    class from which all other classes would inherit
-"""
-from uuid import uuid4
+"""The Base Model contains instances and methods for other classes"""
+
+import uuid
 from datetime import datetime
-import json
-import models.storage
+import models
 
 
 class BaseModel:
-    """
-        The base class for all other classes created
-        in this project..
-    """
+    """BaseModel class definition"""
 
     def __init__(self, *args, **kwargs):
-        
+        """Initialize a new BaseModel object
+
+        Args:
+            *args (any): Unused
+            **kwargs (dict): Key/value pairs of attributes
+        """
+        time_format = "%Y-%m-%dT%H:%M:%S.%f"
         if kwargs:
-            for k, v in kwargs.items():
-                if k == 'id':
-                    self.id = v
-                elif k == 'created_at':
-                    v = datetime.strptime(v, "%Y-%m-%dT%H:%M:%S.%f")
-                    self.created_at = v
-                elif k == 'updated_at':
-                    v = datetime.strptime(v, "%Y-%m-%dT%H:%M:%S.%f")
-                    self.updated_at = v
-                else:
-                    if k != "__class__":
-                        self.__dict__[k] = v
+            for key, val in kwargs.items():
+                if key in ('created_at', 'updated_at'):
+                    val = datetime.strptime(val, time_format)
+                if key != '__class__':
+                    setattr(self, key, val)
         else:
-            self.id = str(uuid4())
-            self.created_at = datetime.today()
-            self.updated_at = datetime.today()
-            storage.new()
+            self.id = str(uuid.uuid4())
+            self.created_at = datetime.now()
+            self.updated_at = self.created_at
+            models.storage.new(self)
 
     def __str__(self):
-        """Define the print() representation of the BaseModel"""
-        return "[{}] ({}) {}".format(type(self).__name__, self.id, self.__dict__)
+        """Representation of the class for the user
+
+        Example:
+            $ base_model = BaseModel()
+            $ print(bm)
+
+            This method prints the content of the BaseModel
+            class with this format
+            $ [<class name>] (<self.id>) <self.__dict__>
+        """
+        return '[{0}] ({1}) {2}'.format(
+            self.__class__.__name__, self.id, self.__dict__
+        )
 
     def save(self):
-        """Updates the attribute 'update_at' with the current datetime"""
-        self.updated_at = self.updated_at.now()
-        storage.save()
+        """Updates hte 'updated_at' attribute"""
+        self.updated_at = datetime.now()
+        return self.updated_at
 
     def to_dict(self):
-        """Returns a dictionary containing key/value pairs of __dict__"""
-        s_created_at = self.created_at.strftime("%Y-%m-%dT%H:%M:%S.%f")
-        s_updated_at = self.updated_at.strftime("%Y-%m-%dT%H:%M:%S.%f")
-        self.__dict__['created_at'] = s_created_at
-        self.__dict__['updated_at'] = s_updated_at
-        self.__dict__['__class__'] = type(self).__name__
-
-        return (self.__dict__)
+        """Converts the information of the class to human-readable format
+        Teturns a new dictionart containing all keys/values
+        """
+        dict_copy = self.__dict__.copy()
+        dict_copy['__class__'] = self.__class__.__name__
+        dict_copy['created_at'] = self.created_at.isoformat()
+        dict_copy['updated_at'] = self.updated_at.isoformat()
+        return dict_copy
