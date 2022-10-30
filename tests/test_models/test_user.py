@@ -1,23 +1,54 @@
 #!/usr/bin/python3
-🎶"""Test User"""
-from models.amenity import Amenity
-from models.base_model import BaseModel
-from models.city import City
-from models.place import Place
-from models.review import Review
-from models.state import State
-import pep8
+
 import unittest
+import os
+from models.user import User
+from models.base_model import BaseModel
 
 
-class Testuser(unittest.TestCase):
-    """
-    Unittests for the User class.
-    """
+class TestUser(unittest.TestCase):
+    """ """
 
-    def test_pep8_conformance_user(self):
-        """Test that we conform to PEP8."""
-        pep8style = pep8.StyleGuide(quiet=True)
-        result = pep8style.check_files(['models/user.py'])
-        self.assertEqual(result.total_errors, 0,
-                         "Found code style errors (and warnings).")
+    @classmethod
+    def setUpClass(clss):
+        clss.usr = User()
+        clss.usr.first_name = "Reda"
+        clss.usr.last_name = "BHH"
+        clss.usr.email = "reda@gmail.com"
+        clss.usr.password = "fffff"
+
+    @classmethod
+    def tearDownClass(clss):
+        del clss.usr
+        try:
+            os.remove("file.json")
+        except FileNotFoundError:
+            pass
+
+    def test_creation(self):
+        self.assertIsNotNone(User.__doc__)
+
+    def test_attr(self):
+        self.assertTrue('email' in self.usr.__dict__)
+        self.assertTrue('id' in self.usr.__dict__)
+        self.assertTrue('created_at' in self.usr.__dict__)
+        self.assertTrue('updated_at' in self.usr.__dict__)
+        self.assertTrue('password' in self.usr.__dict__)
+        self.assertTrue('first_name' in self.usr.__dict__)
+        self.assertTrue('last_name' in self.usr.__dict__)
+
+    def test_str(self):
+        self.assertEqual(type(self.usr.email), str)
+        self.assertEqual(type(self.usr.password), str)
+        self.assertEqual(type(self.usr.first_name), str)
+        self.assertEqual(type(self.usr.first_name), str)
+
+    def test_subclss(self):
+        self.assertTrue(issubclass(self.usr.__class__, BaseModel), True)
+
+    def test_to_dict(self):
+        self.assertEqual('to_dict' in dir(self.usr), True)
+
+
+if __name__ == "__main__":
+    unittest.main()
